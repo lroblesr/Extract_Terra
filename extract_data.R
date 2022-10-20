@@ -1,42 +1,42 @@
 # rm(list = ls())
 # ls()
 setwd('D:/Desktop/Defo')
-pacman::p_load(raster, rgdal, dplyr, rstudioapi, sf, tidyverse, exactextractr)
+pacman::p_load(terra, tidyverse)
 
-dir_shp  <- "Samples_25/All/"
-dir_data <- "Data/All/"
+dir_shp <- "G:/My Drive/Working/BackUp/CEO_Samples/CEO_Samples_25square_All/"
+dir_data <- "G:/My Drive/Working/Deforestacion/Data/All/"
 
-shapes <- dir_shp %>% 
+shapes <- dir_shp %>%
           list.files(pattern = '*.shp$', recursive = TRUE,
-                     full.names = TRUE) 
+                    full.names = TRUE)
 
-list_data <- list.files("Data/All/", pattern = "*.tif$", full.names = T)
+list_data <- list.files(dir_data, pattern = "*.tif$", full.names = T)
 years <- 2010:2019
 
 print(Sys.time())
 cat("******************************", '\n')
 shp <- shapes %>% terra::vect()
-shp
-save(shp, file = "Samples_25/R/Samples25_square.RData")
 cat("n = ", dim(shp)[1], '\n')
 
-for (j in 1:length(list_data)) {
-  # j <- 1
+for (i in length(list_data):1) {
+  # i <- 10
   cat("***********", '\n')
   print(Sys.time())
-  cat("Year: ", years[j], '\n')
+  cat("Year: ", years[i], '\n')
   cat("***********", '\n')
-  data <- terra::rast(list_data[j])
+  data <- terra::rast(list_data[i])
 
   extract_data <- data %>%
                   terra::extract(shp,
                                 df = TRUE,
-                                weights = TRUE,
-                                normalizeWeights = TRUE)
+                                weights = FALSE,
+                                Exact = TRUE
+                                # normalizeWeights = TRUE
+                                )
 
   colnames(extract_data) <- c("ID", "Class", "Weight")
-  
-  nombre_save <- paste0("CSV/Year_", years[j], ".csv")
+
+  nombre_save <- paste0("CSV_Ver02/Year_", years[i], "_fraction.csv")
   write.csv(extract_data, nombre_save, row.names = FALSE)
 }
 print(Sys.time())
